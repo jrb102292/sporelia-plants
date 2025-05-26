@@ -1,0 +1,124 @@
+'use client';
+
+import { motion } from 'framer-motion';
+import Link from 'next/link';
+import Image from 'next/image';
+import { FADE_IN_ANIMATION, SCALE_IN_ANIMATION, STAGGER_CHILDREN } from '@/constants';
+import Navbar from '@/components/Navbar';
+
+export default function Home() {
+  return (
+    <>
+      <Navbar />
+      <motion.div 
+        initial="hidden"
+        animate="visible"
+        variants={STAGGER_CHILDREN}
+        className="min-h-[calc(100vh-80px)] flex flex-col items-center justify-center p-8"
+      >
+        {/* Hero Section */}
+        <section className="w-full max-w-7xl mx-auto min-h-[calc(70vh-80px)] flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-16 py-8">
+          <motion.div 
+            className="lg:w-1/2 text-center lg:text-left"
+            variants={FADE_IN_ANIMATION}
+          >
+            <motion.h1 
+              className="text-5xl sm:text-6xl lg:text-7xl font-bold font-[var(--font-playfair)] text-canopy-green leading-tight mb-6"
+              variants={SCALE_IN_ANIMATION}
+            >
+              Welcome to <span className="text-sage-mist">Sporelia</span>
+            </motion.h1>
+            <motion.p 
+              className="text-lg sm:text-xl font-[var(--font-inter)] text-text-muted leading-airy mb-8 max-w-xl mx-auto lg:mx-0"
+              variants={FADE_IN_ANIMATION}
+            >
+              Your personal sanctuary to nurture, track, and understand your beloved plants. Transform your plant care from a chore into a delightful journey of growth.
+            </motion.p>
+            <motion.div
+              variants={FADE_IN_ANIMATION}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Link 
+                href="/plants"
+                className="inline-block bg-canopy-green hover:bg-opacity-90 text-cream-pulp font-medium py-3.5 px-8 rounded-button shadow-sm hover:shadow-interactive transition-all duration-200 ease-out text-base uppercase tracking-wider focus:outline-none"
+              >
+                Enter Your Garden
+              </Link>
+            </motion.div>
+          </motion.div>
+          
+          <motion.div 
+            className="lg:w-1/2 mt-8 lg:mt-0"
+            variants={FADE_IN_ANIMATION}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <motion.div 
+              className="w-full aspect-square sm:aspect-video lg:aspect-square rounded-card shadow-soft overflow-hidden border border-lichen-veil/30 relative group"
+              whileHover={{ scale: 1.02 }}
+              style={{
+                backgroundImage: `url('https://images.unsplash.com/photo-1416879595882-3373a0480b5b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80')`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+              }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-t from-canopy-green/20 to-transparent opacity-70 group-hover:opacity-60 transition-opacity duration-300"></div>
+              
+              <div className="absolute bottom-4 left-4 right-4 text-cream-pulp text-sm font-medium drop-shadow-sm">
+                <p className="text-lg font-semibold">Visualize Your Plants in 3D</p>
+                <p>Track growth, care, and more with our beautiful UI</p>
+              </div>
+            </motion.div>
+          </motion.div>
+        </section>
+        
+        {/* Features Section */}
+        <motion.section 
+          className="w-full max-w-7xl mx-auto py-16"
+          variants={STAGGER_CHILDREN}
+        >
+          <motion.h2 
+            className="text-3xl font-bold text-center mb-12 text-canopy-green"
+            variants={FADE_IN_ANIMATION}
+          >
+            Artistic Plant Tracking
+          </motion.h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <FeatureCard 
+              title="Animated Growth Tracking" 
+              description="Watch beautiful animations of your plant's growth journey over time."
+              icon="🌱"
+            />
+            <FeatureCard 
+              title="3D Plant Visualization" 
+              description="Explore your plants in interactive 3D models with realistic rendering."
+              icon="🪴"
+            />
+            <FeatureCard 
+              title="Artistic Care Timeline" 
+              description="See your plant care history in a visually stunning animated timeline."
+              icon="🎨"
+            />
+          </div>
+        </motion.section>
+      </motion.div>
+    </>
+  );
+}
+
+function FeatureCard({ title, description, icon }: { title: string; description: string; icon: string }) {
+  return (
+    <motion.div 
+      className="bg-white/80 backdrop-blur-sm p-6 rounded-card shadow-subtle border border-lichen-veil/30"
+      variants={FADE_IN_ANIMATION}
+      whileHover={{ y: -5, boxShadow: '0 12px 30px -5px rgba(39, 62, 54, 0.15)' }}
+    >
+      <div className="text-4xl mb-4">{icon}</div>
+      <h3 className="text-xl font-semibold mb-2 text-canopy-green">{title}</h3>
+      <p className="text-text-muted">{description}</p>
+    </motion.div>
+  );
+}
