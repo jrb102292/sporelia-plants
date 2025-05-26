@@ -1,0 +1,93 @@
+// Example for updating PlantFormDrawer.tsx to use the new action pattern
+
+import React, { useEffect, useState } from 'react';
+import { useForm, SubmitHandler } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as Dialog from '@radix-ui/react-dialog';
+import { Plant, PlantFormData, PlantFormSchema } from '../../types';
+import { useModal } from '../../lib/ModalContext';
+import { usePlantStore, OPERATIONS } from '../../lib/PlantStoreContext';
+import * as plantService from '../../lib/plantService';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { startAsyncAction, successAsyncAction, errorAsyncAction } from '../../lib/plantStoreActions';
+
+// ... existing component logic ...
+
+// When submitting the form, use the new action pattern:
+const onSubmit: SubmitHandler<PlantFormData> = async (data) => {
+  // Prepare plant data
+  const plantDataForService = {
+    name: data.name,
+    species: data.species,
+    acquisitionDate: data.acquisitionDate,
+    plantType: data.plantType || 'Uncategorized',
+    notes: data.notes,
+    lastWatered: data.lastWatered || undefined,
+    imageDataUrl: imagePreview || undefined,
+    parentPlantId: data.parentPlantId || undefined,
+  };
+
+  if (isEditing && editingPlant) {
+    // Update plant
+    plantDispatch(startAsyncAction(OPERATIONS.UPDATE_PLANT, editingPlant.id));
+    try {
+      const result = await plantService.updatePlant({ ...editingPlant, ...plantDataForService });
+      if (result.data) {
+        plantDispatch(successAsyncAction(OPERATIONS.UPDATE_PLANT, result.data, editingPlant.id));
+        reset();
+        closeModal();
+      } else {
+        plantDispatch(errorAsyncAction(OPERATIONS.UPDATE_PLANT, result.error || "Failed to update plant.", editingPlant.id));
+      }
+    } catch (error) {
+      plantDispatch(errorAsyncAction(OPERATIONS.UPDATE_PLANT, "Failed to update plant.", editingPlant.id));
+    }
+  } else if (isCuttingMode && parentPlant && data.cuttingCount && data.cuttingCount > 1) {
+    // Bulk cuttings mode
+    plantDispatch(startAsyncAction(OPERATIONS.ADD_BULK_CUTTINGS, parentPlant.id));
+    try {
+      const result = await plantService.addBulkCuttings(parentPlant.id, plantDataForService, data.cuttingCount, plantState.plants);
+      if (result.data) {
+        plantDispatch(successAsyncAction(OPERATIONS.ADD_BULK_CUTTINGS, result.data, parentPlant.id));
+        reset();
+        setImagePreview(null);
+        closeModal();
+      } else {
+        plantDispatch(errorAsyncAction(OPERATIONS.ADD_BULK_CUTTINGS, result.error || "Failed to add bulk cuttings.", parentPlant.id));
+      }
+    } catch (error) {
+      plantDispatch(errorAsyncAction(OPERATIONS.ADD_BULK_CUTTINGS, "Failed to add bulk cuttings.", parentPlant.id));
+    }
+  } else if (isCuttingMode && parentPlant) {
+    // Single cutting mode
+    plantDispatch(startAsyncAction(OPERATIONS.ADD_PLANT, parentPlant.id));
+    try {
+      const result = await plantService.addCutting(parentPlant.id, plantDataForService, plantState.plants);
+      if (result.data) {
+        plantDispatch(successAsyncAction(OPERATIONS.ADD_PLANT, result.data, result.data.id));
+        reset();
+        setImagePreview(null);
+        closeModal();
+      } else {
+        plantDispatch(errorAsyncAction(OPERATIONS.ADD_PLANT, result.error || "Failed to add cutting.", parentPlant.id));
+      }
+    } catch (error) {
+      plantDispatch(errorAsyncAction(OPERATIONS.ADD_PLANT, "Failed to add cutting.", parentPlant.id));
+    }
+  } else {
+    // Regular plant addition    plantDispatch(startAsyncAction(OPERATIONS.ADD_PLANT));
+    try {
+      const result = await plantService.addPlant(plantDataForService);
+      if (result.data) {
+        plantDispatch(successAsyncAction(OPERATIONS.ADD_PLANT, result.data, result.data.id));
+        reset();
+        setImagePreview(null);
+        closeModal();
+      } else {
+        plantDispatch(errorAsyncAction(OPERATIONS.ADD_PLANT, result.error || "Failed to add plant."));
+      }
+    } catch (error) {
+      plantDispatch(errorAsyncAction(OPERATIONS.ADD_PLANT, "Failed to add plant."));
+    }
+  }
+};

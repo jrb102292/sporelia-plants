@@ -1,0 +1,11 @@
+module.exports = {
+  preset: 'ts-jest/presets/default',
+  extensionsToTreatAsEsm: ['.ts'],
+  globals: {
+    'ts-jest': {
+      useESM: false
+    }
+  },
+  testEnvironment: 'node',
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.js']
+};

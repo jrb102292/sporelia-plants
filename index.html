@@ -1,0 +1,145 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sporelia - Plant Tracker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'canopy-green': '#184C31', // Primary 900
+            'sage-mist': '#8CAF95',    // Accent 400
+            'lichen-veil': '#CBD6C4',  // Background Tint 200
+            'sun-bark': '#E9B072',     // Highlight
+            'cream-pulp': '#F5F0E7',   // Base Canvas
+            primary: 'var(--color-canopy-green)',
+            accent: 'var(--color-sage-mist)',
+            highlight: 'var(--color-sun-bark)',
+            canvas: 'var(--color-cream-pulp)',
+            'background-tint': 'var(--color-lichen-veil)',
+            'text-primary': 'var(--color-canopy-green)',
+            'text-on-primary': 'var(--color-cream-pulp)',
+            'text-accent': 'var(--color-sage-mist)',
+            'text-muted': 'var(--color-canopy-green-muted)', 
+          },
+          fontFamily: {
+            display: ['"Playfair Display"', 'serif'], 
+            heading: ['"IBM Plex Sans"', 'sans-serif'], 
+            body: ['Inter', 'sans-serif'], 
+            mono: ['"IBM Plex Mono"', 'monospace'],
+          },
+          boxShadow: {
+            'subtle': '0 2px 4px 0 rgba(0, 0, 0, 0.06)',
+            'interactive': '0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06)', 
+          },
+          borderRadius: {
+            'card': '12px', 
+            'button': '6px', 
+          },
+          lineHeight: {
+            'airy': '1.65', 
+          },
+          keyframes: {
+            slideInRight: {
+              '0%': { transform: 'translateX(100%)', opacity: '0' },
+              '100%': { transform: 'translateX(0)', opacity: '1' },
+            },
+            slideOutRight: {
+              '0%': { transform: 'translateX(0)', opacity: '1' },
+              '100%': { transform: 'translateX(100%)', opacity: '0' },
+            },
+            fadeIn: {
+              '0%': { opacity: '0' },
+              '100%': { opacity: '1' },
+            },
+            fadeOut: {
+              '0%': { opacity: '1' },
+              '100%': { opacity: '0' },
+            }
+          },
+          animation: {
+            slideInRight: 'slideInRight 0.3s ease-out forwards',
+            slideOutRight: 'slideOutRight 0.3s ease-out forwards',
+            fadeIn: 'fadeIn 0.3s ease-out forwards',
+            fadeOut: 'fadeOut 0.3s ease-out forwards',
+          }
+        }
+      },
+      plugins: [
+        function({ addBase, theme }) {
+          addBase({
+            ':root': {
+              '--color-canopy-green': theme('colors.canopy-green'),
+              '--color-sage-mist': theme('colors.sage-mist'),
+              '--color-lichen-veil': theme('colors.lichen-veil'),
+              '--color-sun-bark': theme('colors.sun-bark'),
+              '--color-cream-pulp': theme('colors.cream-pulp'),
+              '--color-canopy-green-muted': 'rgba(24, 76, 49, 0.75)', 
+            }
+          })
+        }
+      ]
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background-color: var(--color-cream-pulp);
+      font-family: theme('fontFamily.body');
+      color: var(--color-text-primary);
+      line-height: theme('lineHeight.airy');
+    }
+    *:focus-visible {
+      outline: 1.5px solid var(--color-sun-bark) !important;
+      outline-offset: 2px !important;
+    }
+    .focus-style {
+      outline: 1.5px solid var(--color-sun-bark) !important;
+      outline-offset: 2px !important;
+    }
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--color-lichen-veil);
+      border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--color-sage-mist);
+      border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--color-canopy-green);
+    }
+  </style>
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@19.0.0",
+    "react/jsx-runtime": "https://esm.sh/react@19.0.0/jsx-runtime",
+    "react-dom/client": "https://esm.sh/react-dom@19.0.0/client",
+    "zod": "https://esm.sh/zod@3.25.28",
+    "@google/genai": "https://esm.sh/@google/genai@0.12.0",
+    "@radix-ui/react-dialog": "https://esm.sh/@radix-ui/react-dialog@1.1.14",
+    "react-hook-form": "https://esm.sh/react-hook-form@7.56.4",
+    "@hookform/resolvers/zod": "https://esm.sh/@hookform/resolvers@3.9.0/zod",
+    "react-dom/": "https://esm.sh/react-dom@^19.1.0/",
+    "react/": "https://esm.sh/react@^19.1.0/",
+    "@hookform/resolvers/": "https://esm.sh/@hookform/resolvers@^5.0.1/"
+  }
+}
+</script>
+</head>
+<body class="font-body text-text-primary bg-canvas leading-airy">
+  <div id="root"></div>
+  <script type="module" src="/src/index.tsx"></script>
+</body>
+</html>
