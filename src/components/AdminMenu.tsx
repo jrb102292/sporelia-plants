@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
-import { getAuth, signInWithPhoneNumber, RecaptchaVerifier, ConfirmationResult } from 'firebase/auth';
+import { useState, useEffect } from 'react';
+import { getAuth, signInWithPhoneNumber, RecaptchaVerifier, ConfirmationResult, onAuthStateChanged } from 'firebase/auth';
 import { motion, AnimatePresence } from 'framer-motion';
 import { DeleteButton } from './ui/DeleteButton';
 import { plantRepository } from '@/lib/FirebasePlantRepository';
 import { testRepository } from '@/lib/FirebaseTestRepository';
+import { geminiAIService } from '@/lib/GeminiAIService';
 
 const ADMIN_PHONE = '+1234567890'; // Replace with your phone number
 
@@ -24,6 +25,15 @@ export function AdminMenu() {
   const [showVerification, setShowVerification] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
+  const [selectedPlant, setSelectedPlant] = useState<any>(null);
+
+  useEffect(() => {
+    const auth = getAuth();
+    return onAuthStateChanged(auth, (user) => {
+      setIsAuthenticated(!!user);
+    });
+  }, []);
 
   const handlePhoneSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,8 +46,9 @@ export function AdminMenu() {
         size: 'invisible',
       });
 
-      // Only allow your phone number
-      if (phoneNumber !== ADMIN_PHONE) {
+      // Only allow authorized phone number
+      const adminPhone = process.env.NEXT_PUBLIC_ADMIN_PHONE;
+      if (phoneNumber !== adminPhone) {
         throw new Error('Unauthorized phone number');
       }
 
@@ -98,6 +109,31 @@ export function AdminMenu() {
       alert('All test data has been deleted');
     } catch (err) {
       setError('Failed to delete test data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAnalyzePlant = async (plant: any) => {
+    try {
+      setLoading(true);
+      setSelectedPlant(plant);
+      const analysis = await geminiAIService.analyzePlantHealth(plant);
+      setAiAnalysis(analysis);
+    } catch (err) {
+      setError('Failed to analyze plant');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGenerateCareInstructions = async (plantType: string) => {
+    try {
+      setLoading(true);
+      const instructions = await geminiAIService.generateCareInstructions(plantType);
+      setAiAnalysis(instructions);
+    } catch (err) {
+      setError('Failed to generate care instructions');
     } finally {
       setLoading(false);
     }
@@ -201,29 +237,48 @@ export function AdminMenu() {
                 </div>
               ) : (
                 <div className="space-y-4">
+                  {/* AI Analysis Section */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+                    <h3 className="text-sm font-medium text-blue-800">AI Analysis</h3>
+                    <div className="mt-2 space-y-2">
+                      <button
+                        onClick={() => handleGenerateCareInstructions('Monstera')}
+                        disabled={loading}
+                        className="w-full flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                      >
+                        Generate Care Instructions
+                      </button>
+                    </div>
+                    {aiAnalysis && (
+                      <div className="mt-4 p-3 bg-white rounded-md">
+                        <p className="text-sm text-gray-700 whitespace-pre-wrap">{aiAnalysis}</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Danger Zone */}
                   <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
                     <h3 className="text-sm font-medium text-yellow-800">Danger Zone</h3>
                     <p className="mt-1 text-sm text-yellow-700">
                       These actions cannot be undone. Please be careful.
                     </p>
-                  </div>
+                    <div className="mt-2 space-y-2">
+                      <button
+                        onClick={handleDeleteAllPlants}
+                        disabled={loading}
+                        className="w-full flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
+                      >
+                        Delete All Plants
+                      </button>
 
-                  <div className="space-y-2">
-                    <button
-                      onClick={handleDeleteAllPlants}
-                      disabled={loading}
-                      className="w-full flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
-                    >
-                      Delete All Plants
-                    </button>
-
-                    <button
-                      onClick={handleDeleteAllTests}
-                      disabled={loading}
-                      className="w-full flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
-                    >
-                      Delete All Test Data
-                    </button>
+                      <button
+                        onClick={handleDeleteAllTests}
+                        disabled={loading}
+                        className="w-full flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
+                      >
+                        Delete All Test Data
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
