@@ -23,27 +23,6 @@ export interface Plant {
   updatedAt: string;
 }
 
-export interface PlantCategory {
-  id: string;
-  name: string;
-  description?: string;
-  imageUrl?: string;
-}
-
-export interface PlantFormData extends Omit<Plant, 'id' | 'createdAt' | 'updatedAt'> {
-  id?: string;
-}
-
-export type PlantSortOption = 'name' | 'species' | 'category' | 'createdAt';
-export type PlantSortDirection = 'asc' | 'desc';
-
-export interface PlantFilters {
-  category?: string;
-  search?: string;
-  sortBy?: PlantSortOption;
-  sortDirection?: PlantSortDirection;
-}
-
 // Type guard to check if an object is a Plant
 export function isPlant(obj: unknown): obj is Plant {
   if (!obj || typeof obj !== 'object') return false;

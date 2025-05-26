@@ -1,241 +1,195 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Plant } from '@/types';
+import { Plant, PlantStatus, isPlant } from '@/types/plant';
+import { plantRepository } from '@/lib/FirebasePlantRepository';
+import { DeleteButton } from '@/components/ui/DeleteButton';
+import Image from 'next/image';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import FirebasePlantRepository from '@/lib/FirebasePlantRepository';
-import Plant3DVisualizer from '@/components/Plant3DVisualizer';
-import { FADE_IN_ANIMATION, STAGGER_CHILDREN } from '@/constants';
-import Link from 'next/link';
-import Image from 'next/image';
 
-export default function PlantPage({ params }: { params: { id: string } }) {
+export default function PlantDetailPage({ params }: { params: { id: string } }) {
+  const router = useRouter();
   const [plant, setPlant] = useState<Plant | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isWateringUpdated, setIsWateringUpdated] = useState(false);
-  const plant3DRef = useRef<{ triggerWateringAnimation: () => void } | null>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
-    const fetchPlant = async () => {
+    const loadPlant = async () => {
       try {
-        setIsLoading(true);
-        const plantData = await FirebasePlantRepository.getById(params.id);
-        
-        if (!plantData) {
-          setError('Plant not found');
-          return;
+        const plantData = await plantRepository.findById(params.id);
+        if (plantData && isPlant(plantData)) {
+          setPlant(plantData);
+        } else {
+          setError('Invalid plant data received');
         }
-        
-        setPlant(plantData);
       } catch (err) {
-        console.error('Error fetching plant:', err);
         setError('Failed to load plant details');
+        console.error('Error loading plant:', err);
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
     };
 
-    fetchPlant();
-  }, [params.id, isWateringUpdated]);
+    loadPlant();
+  }, [params.id]);
 
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return 'Not recorded';
-    return new Date(dateString).toLocaleDateString(undefined, { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
-    });
-  };
-  const recordWatering = async () => {
-    if (!plant) return;
-    
+  const handleDelete = async () => {
     try {
-      setIsLoading(true);
-      
-      // Trigger the 3D watering animation if available
-      if (plant3DRef.current?.triggerWateringAnimation) {
-        plant3DRef.current.triggerWateringAnimation();
-      }
-      
-      // Update the plant with today's date as the last watered date
-      const today = new Date().toISOString().split('T')[0];
-      const updatedPlant = {
-        ...plant,
-        lastWatered: today
-      };
-      
-      // Save to Firebase
-      await FirebasePlantRepository.save(updatedPlant);
-      
-      // Trigger a refresh
-      setIsWateringUpdated(prev => !prev);
-      
+      await plantRepository.delete(params.id);
+      router.push('/plants');
     } catch (err) {
-      console.error('Error recording watering:', err);
-      setError('Failed to record watering. Please try again.');
-    } finally {
-      setIsLoading(false);
+      setError('Failed to delete plant');
+      console.error('Error deleting plant:', err);
     }
   };
 
-  const getDaysSinceLastWatered = (lastWateredDate?: string) => {
-    if (!lastWateredDate) return null;
-    
-    const lastWatered = new Date(lastWateredDate);
-    const today = new Date();
-    const diffTime = today.getTime() - lastWatered.getTime();
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    
-    return diffDays;
+  if (loading) {
+    return (
+      <>
+        <Navbar onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
+        <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-3xl mx-auto">
+            <div className="animate-pulse">
+              <div className="h-8 bg-gray-200 rounded w-1/4 mb-8"></div>
+              <div className="h-64 bg-gray-200 rounded mb-8"></div>
+              <div className="space-y-4">
+                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <Footer />
+      </>
+    );
+  }
+
+  if (error || !plant) {
+    return (
+      <>
+        <Navbar onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
+        <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-3xl mx-auto">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <p className="text-red-800">{error || 'Plant not found'}</p>
+              <button
+                onClick={() => router.push('/plants')}
+                className="mt-4 text-sm text-red-600 hover:text-red-800"
+              >
+                Return to Plants
+              </button>
+            </div>
+          </div>
+        </div>
+        <Footer />
+      </>
+    );
+  }
+
+  const getStatusColor = (status: PlantStatus) => {
+    switch (status) {
+      case 'Healthy':
+        return 'text-green-600';
+      case 'Needs Attention':
+        return 'text-yellow-600';
+      case 'Unhealthy':
+        return 'text-red-600';
+      default:
+        return 'text-gray-600';
+    }
   };
 
   return (
     <>
-      <Navbar />
-      <div className="min-h-screen p-6 sm:p-8">
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={STAGGER_CHILDREN}
-          className="max-w-6xl mx-auto"
-        >
-          {/* Breadcrumb */}
+      <Navbar onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
+      <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-3xl mx-auto">
           <motion.div 
-            className="mb-6 flex items-center text-sm text-text-muted"
-            variants={FADE_IN_ANIMATION}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white rounded-lg shadow-sm overflow-hidden"
           >
-            <Link href="/plants" className="hover:text-canopy-green">Plants</Link>
-            <span className="mx-2">/</span>
-            <span className="text-canopy-green font-medium">
-              {isLoading ? 'Loading...' : plant?.name || 'Plant Details'}
-            </span>
-          </motion.div>
+            {/* Header with delete button */}
+            <div className="p-6 border-b border-gray-200 flex justify-between items-start">
+              <div>
+                <h1 className="text-2xl font-semibold text-gray-900">{plant.name}</h1>
+                <p className="mt-1 text-sm text-gray-500">{plant.plantType}</p>
+              </div>
+              <DeleteButton onDelete={handleDelete} size="md" />
+            </div>
 
-          {/* Loading state */}
-          {isLoading && (
-            <motion.div 
-              className="flex justify-center py-12"
-              variants={FADE_IN_ANIMATION}
-            >
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-canopy-green"></div>
-            </motion.div>
-          )}
+            {/* Plant image */}
+            <div className="relative h-64 sm:h-96 bg-gray-100">
+              {plant.imageUrl ? (
+                <Image
+                  src={plant.imageUrl}
+                  alt={plant.name}
+                  fill
+                  className="object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-400">
+                  <svg className="w-16 h-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+              )}
+            </div>
 
-          {/* Error state */}
-          {error && (
-            <motion.div 
-              className="bg-red-50 text-red-600 p-6 rounded-lg"
-              variants={FADE_IN_ANIMATION}
-            >
-              <h2 className="text-xl font-semibold mb-2">Error</h2>
-              <p>{error}</p>
-              <Link 
-                href="/plants" 
-                className="inline-block mt-4 text-red-700 hover:underline"
-              >
-                Return to plant collection
-              </Link>
-            </motion.div>
-          )}
-
-          {/* Plant details */}
-          {!isLoading && plant && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Left column - Plant image and 3D visualization */}
-              <motion.div variants={FADE_IN_ANIMATION}>
-                {/* Plant image */}
-                {plant.imageDataUrl && (
-                  <div className="relative w-full h-80 mb-6 rounded-card overflow-hidden shadow-md">
-                    <Image
-                      src={plant.imageDataUrl}
-                      alt={plant.name}
-                      fill
-                      sizes="(max-width: 768px) 100vw, 50vw"
-                      className="object-cover"
-                    />
+            {/* Plant details */}
+            <div className="p-6 space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Status</h3>
+                  <p className={`mt-1 text-sm font-medium ${getStatusColor(plant.status)}`}>
+                    {plant.status}
+                  </p>
+                </div>
+                {plant.isCutting && (
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">Type</h3>
+                    <p className="mt-1 text-sm text-blue-600">Cutting</p>
                   </div>
                 )}
-                  {/* 3D visualization */}
-                <Plant3DVisualizer plant={plant} ref={plant3DRef} />
-              </motion.div>
-              
-              {/* Right column - Plant details */}
-              <motion.div 
-                className="bg-white/70 backdrop-blur-sm p-8 rounded-card shadow-subtle border border-lichen-veil/30"
-                variants={FADE_IN_ANIMATION}
-              >
-                <div className="flex justify-between items-start mb-6">
+                {plant.acquisitionDate && (
                   <div>
-                    <h1 className="text-3xl md:text-4xl font-bold text-canopy-green font-[var(--font-playfair)]">
-                      {plant.name}
-                    </h1>
-                    <p className="text-lg italic text-text-muted mt-1">{plant.species}</p>
-                  </div>
-                  
-                  {plant.plantType && plant.plantType !== "Uncategorized" && (
-                    <span className="text-xs font-medium bg-lichen-veil text-canopy-green px-2.5 py-1 rounded-full">
-                      {plant.plantType}
-                    </span>
-                  )}
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                  <div>
-                    <h2 className="text-sm uppercase tracking-wider text-text-muted mb-2">Acquired On</h2>
-                    <p className="font-medium">{formatDate(plant.acquisitionDate)}</p>
-                  </div>
-                  
-                  <div>
-                    <h2 className="text-sm uppercase tracking-wider text-text-muted mb-2">Last Watered</h2>
-                    <p className="font-medium">
-                      {plant.lastWatered ? formatDate(plant.lastWatered) : 'Not recorded'}
+                    <h3 className="text-sm font-medium text-gray-500">Acquired</h3>
+                    <p className="mt-1 text-sm text-gray-900">
+                      {new Date(plant.acquisitionDate).toLocaleDateString()}
                     </p>
-                    {plant.lastWatered && (
-                      <p className="text-sm mt-1">
-                        <span className={`${
-                          getDaysSinceLastWatered(plant.lastWatered)! > 7 
-                            ? 'text-red-500' 
-                            : 'text-canopy-green'
-                        }`}>
-                          {getDaysSinceLastWatered(plant.lastWatered)} days ago
-                        </span>
-                      </p>
-                    )}
-                  </div>
-                </div>
-                
-                {plant.notes && (
-                  <div className="mb-8">
-                    <h2 className="text-lg font-semibold text-canopy-green mb-2">Notes</h2>
-                    <p className="text-text-muted whitespace-pre-line">{plant.notes}</p>
                   </div>
                 )}
-                
-                {/* Actions */}
-                <div className="flex gap-4 mt-8">
-                  <Link
-                    href={`/plants/${plant.id}/edit`}
-                    className="flex-1 py-2 px-4 bg-lichen-veil text-canopy-green font-medium rounded-button text-center hover:bg-lichen-veil/70 transition-colors"
-                  >
-                    Edit Plant
-                  </Link>                  <motion.button
-                    onClick={recordWatering}
-                    className="flex-1 py-2 px-4 bg-white border border-lichen-veil/50 text-canopy-green font-medium rounded-button text-center hover:bg-lichen-veil/10 transition-colors flex items-center justify-center gap-2"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                    </svg>
-                    Record Watering
-                  </motion.button>
+                {plant.lastWatered && (
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">Last Watered</h3>
+                    <p className="mt-1 text-sm text-gray-900">
+                      {new Date(plant.lastWatered).toLocaleDateString()}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {plant.notes && (
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Notes</h3>
+                  <p className="mt-1 text-sm text-gray-900 whitespace-pre-wrap">{plant.notes}</p>
                 </div>
-              </motion.div>
-            </div>          )}
-        </motion.div>
+              )}
+
+              {plant.careInstructions && (
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Care Instructions</h3>
+                  <p className="mt-1 text-sm text-gray-900 whitespace-pre-wrap">{plant.careInstructions}</p>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        </div>
       </div>
       <Footer />
     </>

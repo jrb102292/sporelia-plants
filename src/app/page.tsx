@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { FirebaseTestButton } from '@/components/ui/FirebaseTestButton';
 
 export default function HomePage() {
   return (
@@ -144,6 +145,16 @@ export default function HomePage() {
           </div>
         </div>
       </div>
+
+      {/* Development Tools Section */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="border-t border-gray-200 pt-8">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Development Tools</h2>
+            <FirebaseTestButton />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import ClientLayout from "@/components/layout/ClientLayout";
+import { AdminMenu } from '@/components/AdminMenu';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,6 +22,7 @@ export default function RootLayout({
         <ClientLayout>
           {children}
         </ClientLayout>
+        <AdminMenu />
       </body>
     </html>
   );
