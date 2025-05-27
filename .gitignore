@@ -44,3 +44,7 @@ firestore-debug.log
 
 # Temporary files
 temp-*
+
+# Next.js build output
+.next/
+out/
