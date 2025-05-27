@@ -4,13 +4,10 @@ import { Plant } from '../types';
 
 export async function testPlantCreation() {
   console.log('🧪 Testing plant creation...');
-  
-  const testPlant: Omit<Plant, 'id'> = {
+    const testPlant: Omit<Plant, 'id'> = {
     name: 'Test Monstera',
+    species: 'Monstera deliciosa',
     plantType: 'Aroids',
-    location: 'Living Room',
-    status: 'Healthy',
-    wateringSchedule: 'Weekly',
     acquisitionDate: new Date().toISOString().split('T')[0],
     lastWatered: new Date().toISOString().split('T')[0],
     notes: 'Test plant for Firebase verification'
@@ -36,4 +33,6 @@ export async function testPlantCreation() {
 }
 
 // Export for use in browser console
-(window as any).testPlantCreation = testPlantCreation;
+if (typeof window !== 'undefined') {
+  (window as any).testPlantCreation = testPlantCreation;
+}

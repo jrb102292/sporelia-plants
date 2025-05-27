@@ -37,4 +37,6 @@ export async function testSimpleFirebaseWrite() {
 }
 
 // Make available in browser console
-(window as any).testSimpleFirebaseWrite = testSimpleFirebaseWrite;
+if (typeof window !== 'undefined') {
+  (window as any).testSimpleFirebaseWrite = testSimpleFirebaseWrite;
+}

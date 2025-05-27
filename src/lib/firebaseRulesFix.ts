@@ -78,5 +78,7 @@ export function displayFirebaseFixInstructions() {
 }
 
 // Make available in browser console
-(window as any).displayFirebaseFixInstructions = displayFirebaseFixInstructions;
-(window as any).FIREBASE_RULES_SOLUTION = FIREBASE_RULES_SOLUTION;
+if (typeof window !== 'undefined') {
+  (window as any).displayFirebaseFixInstructions = displayFirebaseFixInstructions;
+  (window as any).FIREBASE_RULES_SOLUTION = FIREBASE_RULES_SOLUTION;
+}

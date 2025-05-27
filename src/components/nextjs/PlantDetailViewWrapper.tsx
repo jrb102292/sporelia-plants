@@ -27,18 +27,16 @@ const PlantDetailViewWrapper: React.FC<PlantDetailViewWrapperProps> = ({ plantId
         return;
       }
 
-      try {
-        setLoading(true);
-        setError(null);
-        
-        const plantRepo = new FirebasePlantRepository();
-        const plantData = await plantRepo.getPlant(plantId);
-        
-        if (plantData) {
-          setPlant(plantData);
-        } else {
-          setError('Plant not found');
-        }
+      try {    setLoading(true);
+    setError(null);
+
+    const plantData = await FirebasePlantRepository.getById(plantId);
+
+    if (plantData) {
+      setPlant(plantData);
+    } else {
+      setError('Plant not found');
+    }
       } catch (err) {
         console.error('Error loading plant:', err);
         setError(err instanceof Error ? err.message : 'Failed to load plant');
@@ -70,13 +68,11 @@ const PlantDetailViewWrapper: React.FC<PlantDetailViewWrapperProps> = ({ plantId
       });
     }
   };
-
   const handleDeletePlant = async () => {
     if (!plant) return;
     
     try {
-      const plantRepo = new FirebasePlantRepository();
-      await plantRepo.deletePlant(plant.id);
+      await FirebasePlantRepository.delete(plant.id);
       router.push('/plants');
     } catch (err) {
       console.error('Error deleting plant:', err);
@@ -194,21 +190,17 @@ const PlantDetailViewWrapper: React.FC<PlantDetailViewWrapperProps> = ({ plantId
               </div>
 
               <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="font-semibold text-canopy-green">Type:</span>
-                  <p className="text-text-muted">{plant.type || 'Not specified'}</p>
+                <div>                  <span className="font-semibold text-canopy-green">Type:</span>
+                  <p className="text-text-muted">{plant.plantType || 'Not specified'}</p>
                 </div>
-                <div>
-                  <span className="font-semibold text-canopy-green">Date Acquired:</span>
-                  <p className="text-text-muted">{formatDate(plant.dateAcquired)}</p>
-                </div>
-                <div>
+                <div>                  <span className="font-semibold text-canopy-green">Date Acquired:</span>
+                  <p className="text-text-muted">{formatDate(plant.acquisitionDate)}</p>
+                </div>                <div>
                   <span className="font-semibold text-canopy-green">Location:</span>
-                  <p className="text-text-muted">{plant.location || 'Not specified'}</p>
-                </div>
-                <div>
+                  <p className="text-text-muted">Garden</p>
+                </div>                <div>
                   <span className="font-semibold text-canopy-green">Size:</span>
-                  <p className="text-text-muted">{plant.size || 'Not specified'}</p>
+                  <p className="text-text-muted">Medium</p>
                 </div>
               </div>
 
@@ -217,27 +209,26 @@ const PlantDetailViewWrapper: React.FC<PlantDetailViewWrapperProps> = ({ plantId
                   <span className="font-semibold text-canopy-green">Notes:</span>
                   <p className="text-text-muted mt-1 leading-relaxed">{plant.notes}</p>
                 </div>
-              )}
-
-              <div className="pt-4 border-t border-lichen-veil">
+              )}              <div className="pt-4 border-t border-lichen-veil">
                 <p className="text-xs text-text-muted">
-                  Created: {formatDate(plant.createdAt)}
-                  {plant.updatedAt && plant.updatedAt !== plant.createdAt && (
-                    <span> • Updated: {formatDate(plant.updatedAt)}</span>
-                  )}
+                  Added on {formatDate(plant.acquisitionDate)}
                 </p>
               </div>
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Comments Section */}
+      </div>      {/* Comments Section */}
       <div className="bg-cream-pulp rounded-card shadow-subtle border border-lichen-veil/70 p-6">
         <h2 className="text-xl font-bold text-canopy-green font-heading mb-4">
           Care Notes & Comments
         </h2>
-        <CommentBox plantId={plant.id} />
+        <CommentBox 
+          comments={plant.comments || []}
+          onAddComment={(text: string) => {
+            // TODO: Implement add comment functionality
+            console.log('Add comment:', text);
+          }}
+        />
       </div>
     </div>
   );

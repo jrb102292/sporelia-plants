@@ -48,5 +48,7 @@ export async function testFirebaseConnection() {
   }
 }
 
-// Export for manual testing in browser console
-(window as any).testFirebaseConnection = testFirebaseConnection;
+// Export for manual testing in browser console (only in browser)
+if (typeof window !== 'undefined') {
+  (window as any).testFirebaseConnection = testFirebaseConnection;
+}

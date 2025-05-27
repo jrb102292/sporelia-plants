@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plant } from '../types';
+import { Plant } from '../../types';
 
 const DevSampleDataLoader: React.FC = () => {
   const loadSampleData = () => {

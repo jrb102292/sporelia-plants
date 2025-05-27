@@ -62,20 +62,17 @@ const PlantCollectionPageWrapper: React.FC<PlantCollectionPageWrapperProps> = ({
   const filteredPlants = useMemo(() => {
     if (!plants) return [];
     
-    let result = plants;
-
-    // Apply plant type filter
+    let result = plants;    // Apply plant type filter
     if (plantTypeFilter && plantTypeFilter !== 'All') {
-      result = result.filter(plant => plant.type === plantTypeFilter);
+      result = result.filter(plant => plant.plantType === plantTypeFilter);
     }
 
     // Apply search filter
     if (searchTerm.trim()) {
       const searchLower = searchTerm.toLowerCase().trim();
-      result = result.filter(plant => 
-        plant.name.toLowerCase().includes(searchLower) ||
+      result = result.filter(plant =>        plant.name.toLowerCase().includes(searchLower) ||
         (plant.species && plant.species.toLowerCase().includes(searchLower)) ||
-        (plant.type && plant.type.toLowerCase().includes(searchLower))
+        (plant.plantType && plant.plantType.toLowerCase().includes(searchLower))
       );
     }
 
@@ -85,9 +82,8 @@ const PlantCollectionPageWrapper: React.FC<PlantCollectionPageWrapperProps> = ({
   // Group plants by type for display
   const plantsByType = useMemo(() => {
     const grouped: Record<string, Plant[]> = {};
-    
-    filteredPlants.forEach(plant => {
-      const type = plant.type || 'Uncategorized';
+      filteredPlants.forEach(plant => {
+      const type = plant.plantType || 'Uncategorized';
       if (!grouped[type]) {
         grouped[type] = [];
       }

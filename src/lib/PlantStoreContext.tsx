@@ -1,3 +1,5 @@
+'use client';
+
 import React, { createContext, useReducer, useContext, useEffect, ReactNode } from 'react';
 import { Plant } from '../types';
 import * as plantService from './plantService';

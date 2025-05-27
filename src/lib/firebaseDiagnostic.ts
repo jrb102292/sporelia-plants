@@ -78,4 +78,6 @@ service cloud.firestore {
 }
 
 // Export for browser console testing
-(window as any).diagnoseFirebaseIssue = diagnoseFirebaseIssue;
+if (typeof window !== 'undefined') {
+  (window as any).diagnoseFirebaseIssue = diagnoseFirebaseIssue;
+}

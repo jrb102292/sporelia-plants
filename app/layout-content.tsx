@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import NavbarWrapper from '../src/components/nextjs/NavbarWrapper'
 import SidebarWrapper from '../src/components/nextjs/SidebarWrapper'
 import ModalHost from '../src/components/common/ModalHost'
@@ -17,6 +17,15 @@ import { displayFirebaseFixInstructions } from '../src/lib/firebaseRulesFix'
 import { testPlantCreation } from '../src/lib/testPlantCreation'
 import '../src/lib/quickFirebaseTest' // Auto-runs on import
 
+// Extend window interface for debug functions
+declare global {
+  interface Window {
+    testFirebase?: typeof testFirebaseConnection
+    displayFirebaseFixInstructions?: typeof displayFirebaseFixInstructions
+    testPlantCreation?: typeof testPlantCreation
+  }
+}
+
 interface LayoutContentProps {
   children: React.ReactNode
 }
@@ -26,7 +35,6 @@ export default function LayoutContent({ children }: LayoutContentProps) {
   const [firebaseStatus, setFirebaseStatus] = useState<'loading' | 'connected' | 'error' | null>(null)
   const [firebaseError, setFirebaseError] = useState<string | null>(null)
   const pathname = usePathname()
-  const router = useRouter()
   const { state: plantState } = usePlantStore()
   const { isOpen: isModalOpen } = useModal()
 
@@ -40,9 +48,9 @@ export default function LayoutContent({ children }: LayoutContentProps) {
   // Add Firebase test to window for debugging
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      ;(window as any).testFirebase = testFirebaseConnection
-      ;(window as any).displayFirebaseFixInstructions = displayFirebaseFixInstructions
-      ;(window as any).testPlantCreation = testPlantCreation
+      window.testFirebase = testFirebaseConnection
+      window.displayFirebaseFixInstructions = displayFirebaseFixInstructions
+      window.testPlantCreation = testPlantCreation
     }
   }, [])
 
@@ -57,7 +65,7 @@ export default function LayoutContent({ children }: LayoutContentProps) {
         console.log('🔍 Firebase diagnostic result:', result)
         
         // If diagnostic shows permission denied, don't run other tests
-        if (!result.success && (result as any).errorCode === 'permission-denied') {
+        if (!result.success && 'errorCode' in result && result.errorCode === 'permission-denied') {
           console.log('🚫 Skipping other tests due to permission denied error')
           setFirebaseStatus('error')
           setFirebaseError('Permission denied. Please check your Firebase rules.')
@@ -87,17 +95,9 @@ export default function LayoutContent({ children }: LayoutContentProps) {
         setFirebaseError(error.message)
       })
   }, [])
-
   // API_KEY for Gemini will be passed down or used within services
   // This check is for UI warning, actual key usage is in geminiService.ts
   const API_KEY_IS_SET = !!process.env.API_KEY
-
-  const handleNavigate = (path: string) => {
-    // Remove hash if present
-    const cleanPath = path.startsWith('#') ? path.substring(1) : path
-    router.push(cleanPath)
-    setIsSidebarOpen(false)
-  }
 
   const getCurrentRoute = (): AppRoute => {
     if (pathname.startsWith('/plants/') && pathname !== '/plants') {
@@ -172,11 +172,10 @@ export default function LayoutContent({ children }: LayoutContentProps) {
                    rel="noopener noreferrer" 
                    className="inline-block bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700">
                   → Open Firebase Console
-                </a>
-                <button 
+                </a>                <button 
                   onClick={() => {
-                    if ((window as any).displayFirebaseFixInstructions) {
-                      ;(window as any).displayFirebaseFixInstructions()
+                    if (window.displayFirebaseFixInstructions) {
+                      window.displayFirebaseFixInstructions()
                     }
                   }}
                   className="inline-block bg-gray-600 text-white px-3 py-1 rounded text-sm hover:bg-gray-700">

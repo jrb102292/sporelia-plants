@@ -65,4 +65,6 @@ quickFirebaseTest().then(result => {
 });
 
 // Export for manual testing
-(window as any).quickFirebaseTest = quickFirebaseTest;
+if (typeof window !== 'undefined') {
+  (window as any).quickFirebaseTest = quickFirebaseTest;
+}

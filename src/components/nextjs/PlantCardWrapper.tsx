@@ -70,10 +70,9 @@ const PlantCardWrapper: React.FC<PlantCardWrapperProps> = ({ plant, onEdit, onDe
           <h3 className="text-lg font-bold font-heading text-canopy-green mb-1">{plant.name}</h3>
           <p className="text-text-muted text-sm font-body">
             {plant.species || 'Unknown Species'}
-          </p>
-          <div className="mt-2 text-xs text-text-muted/80 font-body">
-            Added: {formatDate(plant.dateAcquired)}
-          </div>
+          </p>              <div className="mt-2 text-xs text-text-muted/80 font-body">
+                Added: {formatDate(plant.acquisitionDate)}
+              </div>
         </div>
 
         {/* Action Button */}

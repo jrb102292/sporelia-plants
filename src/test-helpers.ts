@@ -1,5 +1,5 @@
-import { nextId, deriveChildId, getPlantTypeFromId, isValidPlantId } from '../lib/plantIdHelpers';
-import { Plant } from '../types';
+import { nextId, deriveChildId, getPlantTypeFromId, isValidPlantId } from './lib/plantIdHelpers';
+import { Plant } from './types';
 
 // Test data
 const testPlants: Plant[] = [
