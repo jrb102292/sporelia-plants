@@ -6,13 +6,20 @@ import LoadingSpinner from '../../components/common/LoadingSpinner';
 import CommentBox from '../comments/CommentBox';
 import { useModal } from '../../lib/ModalContext';
 
-const PlantDetailView: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
+interface PlantDetailViewProps {
+  plantId?: string; // For Next.js compatibility
+}
+
+const PlantDetailView: React.FC<PlantDetailViewProps> = ({ plantId }) => {
+  const { id: routerId } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { openModal } = useModal();
   const [plant, setPlant] = useState<Plant | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Use plantId prop if provided (Next.js), otherwise use React Router params
+  const id = plantId || routerId;
 
   useEffect(() => {
     const loadPlant = async () => {

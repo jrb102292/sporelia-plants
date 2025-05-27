@@ -1,22 +1,18 @@
-import React from 'react';
+'use client';
 
-interface NavbarProps {
+import React from 'react';
+import { useRouter } from 'next/navigation';
+
+interface NavbarWrapperProps {
   onToggleSidebar: () => void;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
+const NavbarWrapper: React.FC<NavbarWrapperProps> = ({ onToggleSidebar }) => {
+  const router = useRouter();
+  
   const handleTitleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault(); 
-    // Check if we're in Next.js environment
-    if (typeof window !== 'undefined' && window.location) {
-      if (window.location.pathname.startsWith('/')) {
-        // Next.js navigation
-        window.location.href = '/';
-      } else {
-        // Hash-based navigation (current React Router)
-        window.location.hash = '#/';
-      }
-    }
+    router.push('/');
   };
 
   return (
@@ -29,15 +25,12 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
         >
           <i className="fas fa-bars"></i>
         </button>
-        <a href="#/" onClick={handleTitleClick} className="flex items-center cursor-pointer group">
-          {/* Placeholder for a more elaborate logo if needed */}
-          {/* <i className="fas fa-leaf text-3xl text-cream-pulp mr-3 group-hover:text-sun-bark transition-colors duration-200"></i> */}
+        <a href="/" onClick={handleTitleClick} className="flex items-center cursor-pointer group">
           <h1 className="text-3xl sm:text-4xl font-bold text-cream-pulp font-display group-hover:text-sun-bark/80 transition-colors duration-200 ease-out">Sporelia</h1>
         </a>
-        {/* Future navigation links can go on the right */}
       </div>
     </nav>
   );
 };
 
-export default Navbar;
+export default NavbarWrapper;
